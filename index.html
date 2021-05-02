@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Controle de Voz</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        body {
+            background: #94224ac9;
+        }
+
+        #ola {
+            font-size: 50px;
+            color: #fff;
+            text-align: center;
+            text-shadow: -1px -1px 0 #ccc;
+            margin: 50px 0 30px
+        }
+
+        #gravar {
+            border: none;
+            background: transparent;
+            font-size: 40px;
+            color: #fff;
+            width: 100%;
+            outline-color: transparent;
+            padding-top: 20px;
+        }
+
+        #gravar i {
+            cursor: pointer;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 100%;
+            box-shadow: inset 0 0 0 transparent;
+            -webkit-transition: all 0.5s linear;
+            -moz-transition: all 0.5s linear;
+            -ms-transition: all 0.5s linear;
+            -o-transition: all 0.5s linear;
+            transition: all 0.5s linear;
+            margin-bottom: 15px;
+        }
+
+        #gravar i:hover {
+            box-shadow: inset 0 0 20px #fff;
+        }
+
+        #gravar i:active {
+            box-shadow: inset 0 0 20px 100px #fff;
+            color: #E81D62;
+        }
+
+        #status {
+            color: #fff;
+            text-align: center;
+            display: block
+        }
+
+        #status span {
+            font-weight: bold;
+        }
+
+        #status span.gravando {
+            color: rgb(70, 232, 29);
+        }
+
+        #status span.pausado {
+            color: rgb(173, 115, 229);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #ws-unsupported {
+            font-size: 60px;
+            position: fixed;
+            width: 140%;
+            text-align: center;
+            height: 100px;
+            background: red;
+            color: #000;
+            -webkit-transform: rotateZ(-30deg);
+            -ms-transform: rotateZ(-30deg);
+            -o-transform: rotateZ(-30deg);
+            box-shadow: 0 0 7px rgba(0, 0, 0, 0.67);
+            transform: rotateZ(-30deg);
+            top: 190px;
+        }
+
+        #rect {
+            display: block;
+            margin: 30px auto;
+            background: #fff;
+            padding: 10px;
+            border: none;
+            font-size: 18px;
+            border-radius: 5px;
+            color: rgb(232, 29, 98);
+            font-family: arial;
+        }
+    </style>
+</head>
+
+<body class="container">
+    <p id="ola">Olá, Diga os commandos para controlar o Drone</p>
+
+    <div class="row">
+        <div class="col align-self-center">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" class="btn btn-primary">Left</button>
+                <button type="button" class="btn btn btn-primary">Middle</button>
+                <button type="button" class="btn btn btn-primary">Right</button>
+            </div>
+        </div>
+    </div>
+
+
+    <button id="rect" class="btn btn-success" data-on="false">Iniciar</button>
+
+    <span id="unsupported" class="hidden">API not supported</span>
+
+
+    <div class="row">
+        <div class="col align-self-center">
+            <div class=" card">
+                <ul id="play-command" class="list-group list-group-flush">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        // Test browser support
+        window.SpeechRecognition = window.SpeechRecognition ||
+            window.webkitSpeechRecognition ||
+            null;
+
+        //caso não suporte esta API DE VOZ                              
+        if (window.SpeechRecognition === null) {
+            document.getElementById('unsupported').classList.remove('hidden');
+        } else {
+            var recognizer = new window.SpeechRecognition();
+            //Para o reconhecedor de voz, não parar de ouvir, mesmo que tenha pausas no usuario
+            recognizer.continuous = true
+
+            recognizer.onresult = function (event) {
+                for (var i = event.resultIndex; i < event.results.length; i++) {
+                    var node = document.createElement("li");
+                    node.className = "list-group-item"
+                    var textnode = document.createTextNode(event.results[i][0].transcript);
+                    node.appendChild(textnode)
+                    document.getElementById("play-command").appendChild(node);
+                }
+            }
+
+            document.querySelector("#rect").addEventListener("click", function () {
+                try {
+                    console.log(document.querySelector("#rect").getAttribute("data-on"))
+                    if (document.querySelector("#rect").getAttribute("data-on") === "false") {
+                        document.querySelector("#rect").setAttribute("data-on", "true")
+                        document.querySelector("#rect").textContent = "Parar"
+                        recognizer.start();
+                    } else {
+                        document.querySelector("#rect").setAttribute("data-on", "false")
+                        document.querySelector("#rect").textContent = "Iniciar"
+                        recognizer.stop()
+                    }
+                } catch (ex) {
+                    alert("error: " + ex.message);
+                }
+            });
+        }
+
+    </script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
